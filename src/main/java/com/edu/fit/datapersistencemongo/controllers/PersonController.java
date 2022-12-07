@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,8 +32,12 @@ public class PersonController {
     }
 
     @GetMapping("/{id}")
-    public Optional<Person> getById(@PathVariable("id") UUID id){
-        return repository.findById(id);
+    public Person get(@PathVariable UUID id){
+        var p = repository.findById(id);
+
+        if(p.isPresent()) return p.get();
+
+        return null;
     }
 
     @PostMapping("/")
@@ -43,18 +48,39 @@ public class PersonController {
         return person;
     }
 
-    @PutMapping("/")
-    public Person update(@RequestBody Person p){
-        repository.save(p);
+    @PutMapping("/{id}")
+    public Person update(@PathVariable UUID id, @RequestBody Person person){
+        var p = repository.findById(id);
 
-        return p;
+        if(p.isPresent()){
+
+            var newPerson = p.get();
+
+            newPerson.setName(person.getName());
+
+            repository.save(newPerson);
+
+            return newPerson;
+
+        }else{
+            return null;
+        }
     }
 
-    @DeleteMapping("/")
-    public List<Person> delete(@RequestBody UUID uid){
-        repository.deleteById(uid);
+    @DeleteMapping("/{id}")
+    public Person delete(@PathVariable UUID id){
+        var p = repository.findById(id);
+        if(p.isPresent()){
 
-        return repository.findAll();
+            var person = p.get();
+
+        repository.delete(person);
+
+        return person;
+
+        }else{
+            return null;
+        }
     }
 
 
